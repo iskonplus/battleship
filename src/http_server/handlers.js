@@ -11,11 +11,14 @@ import {
 } from "./utils.js";
 import { users, rooms } from "./db.js";
 
+import {coordKey, findHitShip, isShipKilled, getKilledShipBorderCells, areAllShipsKilled } from './battlHelpers.js'
+
 const errRes = {
     type: "error",
     data: { error: true, errorText: "" },
     id: 0,
 };
+
 
 export const handleReg = (ws, msg) => {
     const { name, password } = JSON.parse(msg.data.toString()) || {};
@@ -185,13 +188,14 @@ export const handleAddShips = (ws, msg) => {
     const bothReady = room.roomUsers.every((user) => user.ready);
 
     if (!bothReady) return;
+    room.currentPlayerId = room.firstPlayerId;
 
     for (const user of room.roomUsers) {
         const startRes = {
             type: "start_game",
             data: JSON.stringify({
                 ships: user.ships,
-                currentPlayerIndex: user.idPlayer,
+                currentPlayerIndex: room.currentPlayerId,
             }),
             id: 0,
         };
@@ -202,7 +206,7 @@ export const handleAddShips = (ws, msg) => {
 
     const turnRes = {
         type: "turn",
-        data: JSON.stringify({ currentPlayer: room.firstPlayerId }),
+        data: JSON.stringify({ currentPlayer: room.currentPlayerId }),
         id: 0,
     };
 
@@ -239,16 +243,6 @@ export const handleAttack = (ws, msg) => {
         return sendJson(ws, errRes);
     }
 
-    if (room.currentPlayerId && room.currentPlayerId !== indexPlayer) {
-        errRes.data.errorText = "Not your turn";
-        console.log(
-            `[${stamp()}] ->`,
-            "Attack rejected: not shooter turn",
-            { expected: room.currentPlayerId, actual: indexPlayer }
-        );
-        return sendJson(ws, errRes);
-    }
-
     const opponent = room.roomUsers.find((user) => user.idPlayer !== indexPlayer);
 
     if (!opponent) {
@@ -261,6 +255,23 @@ export const handleAttack = (ws, msg) => {
         return sendJson(ws, errRes);
     }
 
+
+    if (room.currentPlayerId && room.currentPlayerId !== indexPlayer) {
+        errRes.data.errorText = "Not your turn";
+        console.log(
+            `[${stamp()}] ->`,
+            "Attack rejected: not shooter turn",
+            { expected: room.currentPlayerId, actual: indexPlayer }
+        );
+        return sendJson(ws, errRes);
+    }
+
+    if (!opponent.hits) {
+        opponent.hits = new Set();
+    }
+
+    const shotKey = coordKey(x, y);
+
     console.log(
         `[${stamp()}] -> ATTACK request`,
         {
@@ -271,6 +282,112 @@ export const handleAttack = (ws, msg) => {
         }
     );
 
+    const hitInfo = findHitShip(opponent.ships, x, y);
+
+    if (!hitInfo) {
+        const attackRes = {
+            type: "attack",
+            data: JSON.stringify({
+                position: { x, y },
+                currentPlayer: indexPlayer,
+                status: "miss",
+            }),
+            id: 0,
+        };
+
+        room.roomUsers.forEach((user) => sendJson(user.ws, attackRes));
+        room.currentPlayerId = opponent.idPlayer;
+
+        const turnRes = {
+            type: "turn",
+            data: JSON.stringify({
+                currentPlayer: room.currentPlayerId,
+            }),
+            id: 0,
+        };
+
+        room.roomUsers.forEach((user) => sendJson(user.ws, turnRes));
+
+        console.log(
+            `[${stamp()}] -> ATTACK result miss, next player`,
+            { nextPlayer: room.currentPlayerId }
+        );
+
+        return;
+    }
+
+    const { ship, cells: shipCells } = hitInfo;
+    opponent.hits.add(shotKey);
+
+    const killed = isShipKilled(shipCells, opponent.hits);
+
+    const mainAttackRes = {
+        type: "attack",
+        data: JSON.stringify({
+            position: { x, y },
+            currentPlayer: indexPlayer,
+            status: killed ? "killed" : "shot",
+        }),
+        id: 0,
+    };
+
+    room.roomUsers.forEach((user) => sendJson(user.ws, mainAttackRes));
+
+    if (killed) {
+        const borderCells = getKilledShipBorderCells(shipCells);
+
+        for (const cell of borderCells) {
+            const borderAttackRes = {
+                type: "attack",
+                data: JSON.stringify({
+                    position: { x: cell.x, y: cell.y },
+                    currentPlayer: indexPlayer,
+                    status: "miss",
+                }),
+                id: 0,
+            };
+
+            room.roomUsers.forEach((user) => sendJson(user.ws, borderAttackRes));
+        }
+    }
+    
+    const allKilled = areAllShipsKilled(opponent.ships, opponent.hits);
+
+    if (allKilled) {
+        const finishRes = {
+            type: "finish",
+            data: JSON.stringify({
+                winPlayer: indexPlayer,
+            }),
+            id: 0,
+        };
+
+        room.roomUsers.forEach((user) => sendJson(user.ws, finishRes));
+
+        console.log(
+            `[${stamp()}] -> FINISH game`,
+            { gameId, winPlayer: indexPlayer }
+        );
+
+        return;
+    }
+
+    room.currentPlayerId = indexPlayer;
+
+    const turnRes = {
+        type: "turn",
+        data: JSON.stringify({
+            currentPlayer: room.currentPlayerId,
+        }),
+        id: 0,
+    };
+
+    room.roomUsers.forEach((user) => sendJson(user.ws, turnRes));
+
+    console.log(
+        `[${stamp()}] -> ATTACK result`,
+        { status: killed ? "killed" : "shot", nextPlayer: room.currentPlayerId }
+    );
 };
 
 export const handleSinglePlay = (ws) => {
