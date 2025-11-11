@@ -1,5 +1,6 @@
+import { sendJson } from "./utils.js";
 
-const BOARD_SIZE = 10;
+export const BOARD_SIZE = 10;
 export const coordKey = (x, y) => `${x}:${y}`;
 
 export const  getShipCells = (ship) => {
@@ -69,5 +70,5 @@ export const getKilledShipBorderCells = (shipCells) => {
 };
 
 export const sendJsonPlayers = (room, data) => {
-    room.roomUsers.forEach((user) => sendJson(user.ws, sendJson));
+    room.roomUsers.forEach((user) => sendJson(user.ws, data));
 }

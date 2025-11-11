@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
 import { WebSocketServer } from 'ws';
-import { reg , cr , addUser, addShips, attack, singlePlay } from './handlers/barrel.handlers.js'
+import { reg , cr , addUser, addShips, attack, randomAttack, singlePlay } from './handlers/barrel.handlers.js'
 import { sendJson, stamp } from './utils.js';
 
 export const httpServer = http.createServer(function (req, res) {
@@ -58,6 +58,8 @@ wss.on('connection', (ws) => {
                 return addShips(ws, msg);
             case "attack":
                 return attack(ws, msg);
+            case "randomAttack":
+                return randomAttack(ws, msg);
             case "single_play":
                 return  singlePlay(ws);
             default:

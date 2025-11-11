@@ -1,5 +1,5 @@
 
-import { coordKey, findHitShip, isShipKilled, getKilledShipBorderCells, areAllShipsKilled, sendJsonPlayers } from '../battlHelpers.js';
+import { BOARD_SIZE, coordKey, findHitShip, isShipKilled, getKilledShipBorderCells, areAllShipsKilled, sendJsonPlayers } from '../battlHelpers.js';
 import { stamp, sendJson, errRes, getRoom } from "../utils.js";
 
 export const handleAttack = (ws, msg) => {
@@ -94,7 +94,7 @@ export const handleAttack = (ws, msg) => {
             id: 0,
         };
 
-        sendJsonPlayers(user.ws, turnRes);
+        sendJsonPlayers(room, turnRes);
 
         console.log(
             `[${stamp()}] -> ATTACK result miss, next player`,
@@ -119,7 +119,7 @@ export const handleAttack = (ws, msg) => {
         id: 0,
     };
 
-    sendJsonPlayers(user.ws, mainAttackRes);
+    sendJsonPlayers(room, mainAttackRes);
 
     if (killed) {
         const borderCells = getKilledShipBorderCells(shipCells);
@@ -135,7 +135,7 @@ export const handleAttack = (ws, msg) => {
                 id: 0,
             };
 
-            sendJsonPlayers(user.ws, borderAttackRes);
+            sendJsonPlayers(room, borderAttackRes);
         }
     }
     
@@ -150,7 +150,7 @@ export const handleAttack = (ws, msg) => {
             id: 0,
         };
 
-        sendJsonPlayers(user.ws, finishRes);
+        sendJsonPlayers(room, finishRes);
 
         console.log(
             `[${stamp()}] -> FINISH game`,
@@ -170,10 +170,58 @@ export const handleAttack = (ws, msg) => {
         id: 0,
     };
 
-    sendJsonPlayers(user.ws, turnRes);
+    sendJsonPlayers(room, turnRes);
 
     console.log(
         `[${stamp()}] -> ATTACK result`,
         { status: killed ? "killed" : "shot", nextPlayer: room.currentPlayerId }
     );
 };
+
+
+export const handlerRandomAttack = (ws, msg) => {
+    const { gameId, indexPlayer } = JSON.parse(msg.data.toString()) || {};
+
+    if (!gameId || !indexPlayer) {
+        errRes.data.errorText = "Invalid randomAttack payload";
+        console.log(
+            `[${stamp()}] ->`,
+            "Invalid randomAttack payload",
+            { gameId, indexPlayer }
+        );
+        return sendJson(ws, errRes);
+    }
+
+    const room = getRoom(gameId);
+
+    if (!room) {
+        errRes.data.errorText = "Room not found for randomAttack";
+        console.log(
+            `[${stamp()}] ->`,
+            "Room not found for randomAttack",
+            { gameId }
+        );
+        return sendJson(ws, errRes);
+    }
+
+    const x = Math.floor(Math.random() * BOARD_SIZE);
+    const y = Math.floor(Math.random() * BOARD_SIZE);
+
+    console.log(
+        `[${stamp()}] -> RANDOM ATTACK request`,
+        { gameId, indexPlayer, x, y }
+    );
+
+    const attackMsg = {
+        type: "attack",
+        data: JSON.stringify({
+            gameId,
+            x,
+            y,
+            indexPlayer,
+        }),
+        id: 0,
+    };
+
+    return handleAttack(ws, attackMsg);
+}
