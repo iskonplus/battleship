@@ -54,5 +54,8 @@ export function getPublicRoom(room) {
         };
 }
 
+export const getRoom = (gameId) => rooms.find((room) => room.idGame === gameId);
+
+
 
 

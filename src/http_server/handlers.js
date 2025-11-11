@@ -7,6 +7,7 @@ import {
     addUserToRoom,
     getPublicRooms,
     getPublicRoom,
+    getRoom
 } from "./utils.js";
 import { users, rooms } from "./db.js";
 
@@ -207,6 +208,69 @@ export const handleAddShips = (ws, msg) => {
 
     room.roomUsers.forEach((user) => sendJson(user.ws, turnRes));
     console.log(`[${stamp()}] -> turn broadcast`, turnRes);
+};
+
+export const handleAttack = (ws, msg) => {
+    const { gameId, x, y, indexPlayer } = JSON.parse(msg.data.toString()) || {};
+
+    if (!gameId || typeof x !== "number" || typeof y !== "number" || !indexPlayer) {
+        errRes.data.errorText = "Invalid attack payload";
+        console.log(`[${stamp()}] ->`, "Invalid attack payload", { gameId, x, y, indexPlayer });
+        return sendJson(ws, errRes);
+    }
+
+    const room = getRoom(gameId);
+
+    if (!room) {
+        errRes.data.errorText = "Room not found for attack";
+        console.log(`[${stamp()}] ->`, "Room not found for attack", { gameId });
+        return sendJson(ws, errRes);
+    }
+
+    const shooter = room.roomUsers.find((user) => user.idPlayer === indexPlayer);
+
+    if (!shooter) {
+        errRes.data.errorText = "Shooter not found in this game";
+        console.log(
+            `[${stamp()}] ->`,
+            "Shooter not found in this game",
+            { gameId, indexPlayer }
+        );
+        return sendJson(ws, errRes);
+    }
+
+    if (room.currentPlayerId && room.currentPlayerId !== indexPlayer) {
+        errRes.data.errorText = "Not your turn";
+        console.log(
+            `[${stamp()}] ->`,
+            "Attack rejected: not shooter turn",
+            { expected: room.currentPlayerId, actual: indexPlayer }
+        );
+        return sendJson(ws, errRes);
+    }
+
+    const opponent = room.roomUsers.find((user) => user.idPlayer !== indexPlayer);
+
+    if (!opponent) {
+        errRes.data.errorText = "Opponent not found";
+        console.log(
+            `[${stamp()}] ->`,
+            "Opponent not found for attack",
+            { gameId, indexPlayer }
+        );
+        return sendJson(ws, errRes);
+    }
+
+    console.log(
+        `[${stamp()}] -> ATTACK request`,
+        {
+            gameId,
+            shooter: { name: shooter.name, idPlayer: shooter.idPlayer },
+            opponent: { name: opponent.name, idPlayer: opponent.idPlayer },
+            position: { x, y },
+        }
+    );
+
 };
 
 export const handleSinglePlay = (ws) => {
