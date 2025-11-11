@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Battle Ship</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=East+Sea+Dokdo&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <script defer="defer" src="main.js"></script>
+    <link href="main.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="root"></div>
+</body>
+
+<script>
+(function () {
+  const OriginalWS = window.WebSocket;
+  window.WebSocket = function (url, protocols) {
+    if (typeof url === 'string') {
+      url = url.replace(/:\/\/localhost:\d+\b/, '://' + location.host);
+    }
+    return new OriginalWS(url, protocols);
+  };
+  window.WebSocket.prototype = OriginalWS.prototype;
+})();
+</script>
+
+</html>
