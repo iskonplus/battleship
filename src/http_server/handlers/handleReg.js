@@ -1,7 +1,8 @@
 import { stamp, sendJson, createUser } from "../utils.js";
 import { users } from "../db.js";
+import { getWinnersTable } from "../winnersHelper.js";
 
-export const handleReg = (ws, msg) => {
+export const handleReg = (ws,wss, msg) => {
     const { name, password } = JSON.parse(msg.data.toString()) || {};
 
     let activeUser = users.find(
@@ -17,6 +18,23 @@ export const handleReg = (ws, msg) => {
         errorText: "",
     };
 
+    const winnersTable = getWinnersTable();
+
+    const updateWinnersRes = {
+        type: "update_winners",
+        data: JSON.stringify(winnersTable),
+        id: 0,
+    };
+
+    wss.clients.forEach((client) => {
+        sendJson(client, updateWinnersRes);
+    });
+
+    console.log(
+        `[${stamp()}] -> broadcast update_winners after reg`,
+        winnersTable
+    );
+
     const okRes = {
         type: "reg",
         data: JSON.stringify(responseData),
@@ -27,4 +45,5 @@ export const handleReg = (ws, msg) => {
 
     console.log(`[${stamp()}] ->`, okRes);
     sendJson(ws, okRes);
+
 };

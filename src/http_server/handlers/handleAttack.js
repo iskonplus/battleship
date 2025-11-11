@@ -1,6 +1,8 @@
 
 import { BOARD_SIZE, coordKey, findHitShip, isShipKilled, getKilledShipBorderCells, areAllShipsKilled, sendJsonPlayers } from '../battlHelpers.js';
 import { stamp, sendJson, errRes, getRoom } from "../utils.js";
+import { users } from "../db.js";
+import { getWinnersTable } from "../winnersHelper.js";
 
 export const handleAttack = (ws, msg) => {
     const { gameId, x, y, indexPlayer } = JSON.parse(msg.data.toString()) || {};
@@ -139,9 +141,26 @@ export const handleAttack = (ws, msg) => {
         }
     }
     
-    const allKilled = areAllShipsKilled(opponent.ships, opponent.hits);
+       const allKilled = areAllShipsKilled(opponent.ships, opponent.hits);
 
     if (allKilled) {
+          const winnerGlobal = ws.user;
+
+        if (winnerGlobal) {
+            winnerGlobal.wins = (winnerGlobal.wins || 0) + 1;
+            console.log(
+                `[${stamp()}] -> WINNER updated`,
+                { name: winnerGlobal.name, wins: winnerGlobal.wins }
+            );
+        } else {
+            console.log(
+                `[${stamp()}] -> WINNER not found on ws.user`,
+                { gameId, indexPlayer }
+            );
+        }
+
+        const winnersTable = getWinnersTable();
+
         const finishRes = {
             type: "finish",
             data: JSON.stringify({
@@ -155,6 +174,19 @@ export const handleAttack = (ws, msg) => {
         console.log(
             `[${stamp()}] -> FINISH game`,
             { gameId, winPlayer: indexPlayer }
+        );
+
+        const updateWinnersRes = {
+            type: "update_winners",
+            data: JSON.stringify(winnersTable),
+            id: 0,
+        };
+
+        sendJsonPlayers(room, updateWinnersRes);
+
+        console.log(
+            `[${stamp()}] -> update_winners`,
+            winnersTable
         );
 
         return;

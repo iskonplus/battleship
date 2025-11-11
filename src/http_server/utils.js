@@ -4,7 +4,7 @@ import { users, rooms } from './db.js';
 export const getRandomUUID = _ => crypto.randomUUID();
 
 export const createUser = (user) => {
-    const newUser = { ...user, index: crypto.randomUUID() };
+    const newUser = { ...user, index: crypto.randomUUID(), wins: 0,  };
     users.push(newUser);
     return newUser;
 }

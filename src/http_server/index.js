@@ -49,7 +49,7 @@ wss.on('connection', (ws) => {
 
         switch (msg.type) {
             case "reg":
-                return reg(ws, msg);
+                return reg(ws,wss, msg);
             case "create_room":
                 return cr(ws, wss);
             case "add_user_to_room":
