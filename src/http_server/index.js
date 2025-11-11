@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
 import { WebSocketServer } from 'ws';
-import { handleReg, handleCreateRoom, handleSinglePlay, handleAddUserToRoom, handleAddShips, handleAttack } from './handlers.js';
+import { reg , cr , addUser, addShips, attack, singlePlay } from './handlers/barrel.handlers.js'
 import { sendJson, stamp } from './utils.js';
 
 export const httpServer = http.createServer(function (req, res) {
@@ -30,11 +30,8 @@ httpServer.on('upgrade', (req, socket, head) => {
 
 wss.on('connection', (ws) => {
     console.log(`[${stamp()}] WS connected`);
-
     ws.on('message', (message) => {
-
         let msg;
-
         try {
             msg = JSON.parse(message.toString());
         } catch {
@@ -52,17 +49,17 @@ wss.on('connection', (ws) => {
 
         switch (msg.type) {
             case "reg":
-                return handleReg(ws, msg);
+                return reg(ws, msg);
             case "create_room":
-                return handleCreateRoom(ws, wss);
+                return cr(ws, wss);
             case "add_user_to_room":
-                return  handleAddUserToRoom(wss, ws, msg);
+                return  addUser(wss, ws, msg);
             case "add_ships":
-                return handleAddShips(ws, msg);
+                return addShips(ws, msg);
             case "attack":
-                return handleAttack(ws, msg);
+                return attack(ws, msg);
             case "single_play":
-                return  handleSinglePlay(ws);
+                return  singlePlay(ws);
             default:
                 return sendJson(ws, { type: msg.type, data: msg, id: 0 });
         }

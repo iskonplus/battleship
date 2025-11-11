@@ -56,6 +56,12 @@ export function getPublicRoom(room) {
 
 export const getRoom = (gameId) => rooms.find((room) => room.idGame === gameId);
 
+export const errRes = {
+    type: "error",
+    data: { error: true, errorText: "" },
+    id: 0,
+};
+
 
 
 
