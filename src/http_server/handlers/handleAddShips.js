@@ -1,7 +1,7 @@
 import {
     stamp, sendJson, errRes, getRoom
 } from "../utils.js";
-import { rooms } from "../db.js";
+
 export const handleAddShips = (ws, msg) => {
     const { gameId, ships, indexPlayer } = JSON.parse(msg.data.toString()) || {};
 

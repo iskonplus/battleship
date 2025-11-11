@@ -67,3 +67,7 @@ export const getKilledShipBorderCells = (shipCells) => {
         return { x, y };
     });
 };
+
+export const sendJsonPlayers = (room, data) => {
+    room.roomUsers.forEach((user) => sendJson(user.ws, sendJson));
+}

@@ -1,5 +1,5 @@
 
-import { coordKey, findHitShip, isShipKilled, getKilledShipBorderCells, areAllShipsKilled } from '../battlHelpers.js';
+import { coordKey, findHitShip, isShipKilled, getKilledShipBorderCells, areAllShipsKilled, sendJsonPlayers } from '../battlHelpers.js';
 import { stamp, sendJson, errRes, getRoom } from "../utils.js";
 
 export const handleAttack = (ws, msg) => {
@@ -83,7 +83,7 @@ export const handleAttack = (ws, msg) => {
             id: 0,
         };
 
-        room.roomUsers.forEach((user) => sendJson(user.ws, attackRes));
+        sendJsonPlayers(room, attackRes);
         room.currentPlayerId = opponent.idPlayer;
 
         const turnRes = {
@@ -94,7 +94,7 @@ export const handleAttack = (ws, msg) => {
             id: 0,
         };
 
-        room.roomUsers.forEach((user) => sendJson(user.ws, turnRes));
+        sendJsonPlayers(user.ws, turnRes);
 
         console.log(
             `[${stamp()}] -> ATTACK result miss, next player`,
@@ -119,7 +119,7 @@ export const handleAttack = (ws, msg) => {
         id: 0,
     };
 
-    room.roomUsers.forEach((user) => sendJson(user.ws, mainAttackRes));
+    sendJsonPlayers(user.ws, mainAttackRes);
 
     if (killed) {
         const borderCells = getKilledShipBorderCells(shipCells);
@@ -135,7 +135,7 @@ export const handleAttack = (ws, msg) => {
                 id: 0,
             };
 
-            room.roomUsers.forEach((user) => sendJson(user.ws, borderAttackRes));
+            sendJsonPlayers(user.ws, borderAttackRes);
         }
     }
     
@@ -150,7 +150,7 @@ export const handleAttack = (ws, msg) => {
             id: 0,
         };
 
-        room.roomUsers.forEach((user) => sendJson(user.ws, finishRes));
+        sendJsonPlayers(user.ws, finishRes);
 
         console.log(
             `[${stamp()}] -> FINISH game`,
@@ -170,7 +170,7 @@ export const handleAttack = (ws, msg) => {
         id: 0,
     };
 
-    room.roomUsers.forEach((user) => sendJson(user.ws, turnRes));
+    sendJsonPlayers(user.ws, turnRes);
 
     console.log(
         `[${stamp()}] -> ATTACK result`,

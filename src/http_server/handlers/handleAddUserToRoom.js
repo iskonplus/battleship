@@ -1,11 +1,10 @@
 import {
-    stamp, sendJson, errRes, getRandomUUID, addUserToRoom, getPublicRooms, getPublicRoom
+    stamp, sendJson, errRes, getRandomUUID, addUserToRoom, getPublicRooms, getPublicRoom, getRoom
 } from "../utils.js";
-import { rooms } from "../db.js";
 
 export const handleAddUserToRoom = (wss, ws, msg) => {
     const { indexRoom } = JSON.parse(msg.data.toString()) || {};
-    const room = rooms.find((room) => room.roomId === indexRoom);
+    const room = getRoom(indexRoom);
     const user = ws.user;
 
     if (!room) {
