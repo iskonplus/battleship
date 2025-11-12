@@ -1,4 +1,4 @@
-import { stamp, sendJson, createUser, broadcastAll } from "../utils.js";
+import { stamp, sendJson, createUser, broadcastAll, getPublicRooms } from "../utils.js";
 import { users } from "../db.js";
 import { getWinnersTable } from "../helpers/winnersHelper.js";
 
@@ -41,6 +41,15 @@ export const handleReg = (ws, wss, msg) => {
     };
 
     ws.user = activeUser;
+
+    const publicRooms = getPublicRooms();
+    const updateRoomRes = {
+        type: "update_room",
+        data: JSON.stringify(publicRooms),
+        id: 0,
+    };
+
+    sendJson(ws, updateRoomRes);
 
     // console.log(`[${stamp()}] ->`, okRes);
     sendJson(ws, okRes);

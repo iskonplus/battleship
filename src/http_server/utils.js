@@ -4,7 +4,7 @@ import { users, rooms } from './db.js';
 export const getRandomUUID = _ => crypto.randomUUID();
 
 export const createUser = (user) => {
-    const newUser = { ...user, index: crypto.randomUUID(), wins: 0,  };
+    const newUser = { ...user, index: crypto.randomUUID(), wins: 0, };
     users.push(newUser);
     return newUser;
 }
@@ -17,16 +17,13 @@ export const stamp = () => new Date().toISOString();
 //     }
 // };
 export const sendJson = (ws, payload) => {
-  try {
-    // payload ожидается вида { type, data, id }
-    const { type, id } = payload || {};
-    // data может быть строкой; для лога покажем коротко
-    console.log(`[${stamp()}] -> ${type ?? 'UNKNOWN'} (id:${id ?? 0})`, payload);
-
-    ws.send(JSON.stringify(payload));
-  } catch (e) {
-    console.log(`[${stamp()}] -> sendJson error`, e);
-  }
+    try {
+        const { type, id } = payload || {};
+        console.log(`[${stamp()}] -> ${type ?? 'UNKNOWN'} (id:${id ?? 0})`, payload);
+        ws.send(JSON.stringify(payload));
+    } catch (e) {
+        console.log(`[${stamp()}] -> sendJson error`, e);
+    }
 };
 
 export const broadcastAll = (wss, payload) => {
@@ -58,7 +55,7 @@ export function addUserToRoom(user, id, ws, gameId) {
 }
 
 export function getPublicRooms() {
-        return rooms
+    return rooms
         .filter(room => room.roomUsers.length === 1)
         .map(room => ({
             roomId: room.roomId,
@@ -66,10 +63,10 @@ export function getPublicRooms() {
         }));
 }
 export function getPublicRoom(room) {
-       return{
-            roomId: room.roomId,
-            roomUsers: room.roomUsers.map(user => ({ name: user.name, index: user.index })),
-        };
+    return {
+        roomId: room.roomId,
+        roomUsers: room.roomUsers.map(user => ({ name: user.name, index: user.index })),
+    };
 }
 
 export const getRoom = (gameId) => rooms.find((room) => room.idGame === gameId);
