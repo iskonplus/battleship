@@ -1,49 +1,48 @@
 import { stamp, sendJson, createUser } from "../utils.js";
 import { users } from "../db.js";
-import { getWinnersTable } from "../winnersHelper.js";
+import { getWinnersTable } from "../helpers/winnersHelper.js";
 
-export const handleReg = (ws,wss, msg) => {
-    const { name, password } = JSON.parse(msg.data.toString()) || {};
+export const handleReg = (ws, wss, msg) => {
+  const { name, password } = JSON.parse(msg.data.toString()) || {};
 
-    let activeUser = users.find(
-        (user) => user.name === name && user.password === password
-    );
+  let activeUser = users.find(
+    (user) => user.name === name && user.password === password
+  );
 
-    if (!activeUser) activeUser = createUser({ name, password });
+  if (!activeUser) activeUser = createUser({ name, password });
 
-    let responseData = {
-        name: activeUser.name,
-        index: activeUser.index,
-        error: false,
-        errorText: "",
-    };
+  let responseData = {
+    name: activeUser.name,
+    index: activeUser.index,
+    error: false,
+    errorText: "",
+  };
 
-    const winnersTable = getWinnersTable();
+  const winnersTable = getWinnersTable();
 
-    const updateWinnersRes = {
-        type: "update_winners",
-        data: JSON.stringify(winnersTable),
-        id: 0,
-    };
+  const updateWinnersRes = {
+    type: "update_winners",
+    data: JSON.stringify(winnersTable),
+    id: 0,
+  };
 
-    wss.clients.forEach((client) => {
-        sendJson(client, updateWinnersRes);
-    });
+  wss.clients.forEach((client) => {
+    sendJson(client, updateWinnersRes);
+  });
 
-    console.log(
-        `[${stamp()}] -> broadcast update_winners after reg`,
-        winnersTable
-    );
+  console.log(
+    `[${stamp()}] -> broadcast update_winners after reg`,
+    winnersTable
+  );
 
-    const okRes = {
-        type: "reg",
-        data: JSON.stringify(responseData),
-        id: 0,
-    };
+  const okRes = {
+    type: "reg",
+    data: JSON.stringify(responseData),
+    id: 0,
+  };
 
-    ws.user = activeUser;
+  ws.user = activeUser;
 
-    console.log(`[${stamp()}] ->`, okRes);
-    sendJson(ws, okRes);
-
+  console.log(`[${stamp()}] ->`, okRes);
+  sendJson(ws, okRes);
 };

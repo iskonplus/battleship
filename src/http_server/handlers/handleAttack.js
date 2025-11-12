@@ -1,15 +1,32 @@
-
-import { BOARD_SIZE, coordKey, findHitShip, isShipKilled, getKilledShipBorderCells, areAllShipsKilled, sendJsonPlayers } from '../battlHelpers.js';
+import {
+    BOARD_SIZE,
+    coordKey,
+    findHitShip,
+    isShipKilled,
+    getKilledShipBorderCells,
+    areAllShipsKilled,
+    sendJsonPlayers,
+} from "../battlHelpers.js";
 import { stamp, sendJson, errRes, getRoom } from "../utils.js";
-import { users } from "../db.js";
-import { getWinnersTable } from "../winnersHelper.js";
+import { removeRoom } from '../helpers/roomHelper.js';
+import { getWinnersTable } from "../helpers/winnersHelper.js";
 
 export const handleAttack = (ws, wss, msg) => {
     const { gameId, x, y, indexPlayer } = JSON.parse(msg.data.toString()) || {};
 
-    if (!gameId || typeof x !== "number" || typeof y !== "number" || !indexPlayer) {
+    if (
+        !gameId ||
+        typeof x !== "number" ||
+        typeof y !== "number" ||
+        !indexPlayer
+    ) {
         errRes.data.errorText = "Invalid attack payload";
-        console.log(`[${stamp()}] ->`, "Invalid attack payload", { gameId, x, y, indexPlayer });
+        console.log(`[${stamp()}] ->`, "Invalid attack payload", {
+            gameId,
+            x,
+            y,
+            indexPlayer,
+        });
         return sendJson(ws, errRes);
     }
 
@@ -25,11 +42,10 @@ export const handleAttack = (ws, wss, msg) => {
 
     if (!shooter) {
         errRes.data.errorText = "Shooter not found in this game";
-        console.log(
-            `[${stamp()}] ->`,
-            "Shooter not found in this game",
-            { gameId, indexPlayer }
-        );
+        console.log(`[${stamp()}] ->`, "Shooter not found in this game", {
+            gameId,
+            indexPlayer,
+        });
         return sendJson(ws, errRes);
     }
 
@@ -37,22 +53,19 @@ export const handleAttack = (ws, wss, msg) => {
 
     if (!opponent) {
         errRes.data.errorText = "Opponent not found";
-        console.log(
-            `[${stamp()}] ->`,
-            "Opponent not found for attack",
-            { gameId, indexPlayer }
-        );
+        console.log(`[${stamp()}] ->`, "Opponent not found for attack", {
+            gameId,
+            indexPlayer,
+        });
         return sendJson(ws, errRes);
     }
 
-
     if (room.currentPlayerId && room.currentPlayerId !== indexPlayer) {
         errRes.data.errorText = "Not your turn";
-        console.log(
-            `[${stamp()}] ->`,
-            "Attack rejected: not shooter turn",
-            { expected: room.currentPlayerId, actual: indexPlayer }
-        );
+        console.log(`[${stamp()}] ->`, "Attack rejected: not shooter turn", {
+            expected: room.currentPlayerId,
+            actual: indexPlayer,
+        });
         return sendJson(ws, errRes);
     }
 
@@ -62,15 +75,12 @@ export const handleAttack = (ws, wss, msg) => {
 
     const shotKey = coordKey(x, y);
 
-    console.log(
-        `[${stamp()}] -> ATTACK request`,
-        {
-            gameId,
-            shooter: { name: shooter.name, idPlayer: shooter.idPlayer },
-            opponent: { name: opponent.name, idPlayer: opponent.idPlayer },
-            position: { x, y },
-        }
-    );
+    console.log(`[${stamp()}] -> ATTACK request`, {
+        gameId,
+        shooter: { name: shooter.name, idPlayer: shooter.idPlayer },
+        opponent: { name: opponent.name, idPlayer: opponent.idPlayer },
+        position: { x, y },
+    });
 
     const hitInfo = findHitShip(opponent.ships, x, y);
 
@@ -98,10 +108,9 @@ export const handleAttack = (ws, wss, msg) => {
 
         sendJsonPlayers(room, turnRes);
 
-        console.log(
-            `[${stamp()}] -> ATTACK result miss, next player`,
-            { nextPlayer: room.currentPlayerId }
-        );
+        console.log(`[${stamp()}] -> ATTACK result miss, next player`, {
+            nextPlayer: room.currentPlayerId,
+        });
 
         return;
     }
@@ -140,23 +149,23 @@ export const handleAttack = (ws, wss, msg) => {
             sendJsonPlayers(room, borderAttackRes);
         }
     }
-    
-       const allKilled = areAllShipsKilled(opponent.ships, opponent.hits);
+
+    const allKilled = areAllShipsKilled(opponent.ships, opponent.hits);
 
     if (allKilled) {
-          const winnerGlobal = ws.user;
+        const winnerGlobal = ws.user;
 
         if (winnerGlobal) {
             winnerGlobal.wins = (winnerGlobal.wins || 0) + 1;
-            console.log(
-                `[${stamp()}] -> WINNER updated`,
-                { name: winnerGlobal.name, wins: winnerGlobal.wins }
-            );
+            console.log(`[${stamp()}] -> WINNER updated`, {
+                name: winnerGlobal.name,
+                wins: winnerGlobal.wins,
+            });
         } else {
-            console.log(
-                `[${stamp()}] -> WINNER not found on ws.user`,
-                { gameId, indexPlayer }
-            );
+            console.log(`[${stamp()}] -> WINNER not found on ws.user`, {
+                gameId,
+                indexPlayer,
+            });
         }
 
         const winnersTable = getWinnersTable();
@@ -171,10 +180,10 @@ export const handleAttack = (ws, wss, msg) => {
 
         sendJsonPlayers(room, finishRes);
 
-        console.log(
-            `[${stamp()}] -> FINISH game`,
-            { gameId, winPlayer: indexPlayer }
-        );
+        console.log(`[${stamp()}] -> FINISH game`, {
+            gameId,
+            winPlayer: indexPlayer,
+        });
 
         const updateWinnersRes = {
             type: "update_winners",
@@ -182,16 +191,13 @@ export const handleAttack = (ws, wss, msg) => {
             id: 0,
         };
 
-            wss.clients.forEach((client) => {
-        sendJson(client, updateWinnersRes);
-    });
+        wss.clients.forEach((client) => {
+            sendJson(client, updateWinnersRes);
+        });
 
-        // sendJsonPlayers(room, updateWinnersRes);
+        removeRoom(gameId);
 
-        console.log(
-            `[${stamp()}] -> update_winners`,
-            winnersTable
-        );
+        console.log(`[${stamp()}] -> update_winners`, winnersTable);
 
         return;
     }
@@ -208,23 +214,21 @@ export const handleAttack = (ws, wss, msg) => {
 
     sendJsonPlayers(room, turnRes);
 
-    console.log(
-        `[${stamp()}] -> ATTACK result`,
-        { status: killed ? "killed" : "shot", nextPlayer: room.currentPlayerId }
-    );
+    console.log(`[${stamp()}] -> ATTACK result`, {
+        status: killed ? "killed" : "shot",
+        nextPlayer: room.currentPlayerId,
+    });
 };
-
 
 export const handlerRandomAttack = (ws, msg) => {
     const { gameId, indexPlayer } = JSON.parse(msg.data.toString()) || {};
 
     if (!gameId || !indexPlayer) {
         errRes.data.errorText = "Invalid randomAttack payload";
-        console.log(
-            `[${stamp()}] ->`,
-            "Invalid randomAttack payload",
-            { gameId, indexPlayer }
-        );
+        console.log(`[${stamp()}] ->`, "Invalid randomAttack payload", {
+            gameId,
+            indexPlayer,
+        });
         return sendJson(ws, errRes);
     }
 
@@ -232,21 +236,21 @@ export const handlerRandomAttack = (ws, msg) => {
 
     if (!room) {
         errRes.data.errorText = "Room not found for randomAttack";
-        console.log(
-            `[${stamp()}] ->`,
-            "Room not found for randomAttack",
-            { gameId }
-        );
+        console.log(`[${stamp()}] ->`, "Room not found for randomAttack", {
+            gameId,
+        });
         return sendJson(ws, errRes);
     }
 
     const x = Math.floor(Math.random() * BOARD_SIZE);
     const y = Math.floor(Math.random() * BOARD_SIZE);
 
-    console.log(
-        `[${stamp()}] -> RANDOM ATTACK request`,
-        { gameId, indexPlayer, x, y }
-    );
+    console.log(`[${stamp()}] -> RANDOM ATTACK request`, {
+        gameId,
+        indexPlayer,
+        x,
+        y,
+    });
 
     const attackMsg = {
         type: "attack",
@@ -260,4 +264,4 @@ export const handlerRandomAttack = (ws, msg) => {
     };
 
     return handleAttack(ws, attackMsg);
-}
+};
