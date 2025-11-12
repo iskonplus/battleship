@@ -75,12 +75,12 @@ export const handleAttack = (ws, wss, msg) => {
 
     const shotKey = coordKey(x, y);
 
-    console.log(`[${stamp()}] -> ATTACK request`, {
-        gameId,
-        shooter: { name: shooter.name, idPlayer: shooter.idPlayer },
-        opponent: { name: opponent.name, idPlayer: opponent.idPlayer },
-        position: { x, y },
-    });
+    // console.log(`[${stamp()}] -> ATTACK request`, {
+    //     gameId,
+    //     shooter: { name: shooter.name, idPlayer: shooter.idPlayer },
+    //     opponent: { name: opponent.name, idPlayer: opponent.idPlayer },
+    //     position: { x, y },
+    // });
 
     const hitInfo = findHitShip(opponent.ships, x, y);
 
@@ -108,9 +108,9 @@ export const handleAttack = (ws, wss, msg) => {
 
         sendJsonPlayers(room, turnRes);
 
-        console.log(`[${stamp()}] -> ATTACK result miss, next player`, {
-            nextPlayer: room.currentPlayerId,
-        });
+        // console.log(`[${stamp()}] -> ATTACK result miss, next player`, {
+        //     nextPlayer: room.currentPlayerId,
+        // });
 
         return;
     }
@@ -157,15 +157,15 @@ export const handleAttack = (ws, wss, msg) => {
 
         if (winnerGlobal) {
             winnerGlobal.wins = (winnerGlobal.wins || 0) + 1;
-            console.log(`[${stamp()}] -> WINNER updated`, {
-                name: winnerGlobal.name,
-                wins: winnerGlobal.wins,
-            });
+            // console.log(`[${stamp()}] -> WINNER updated`, {
+            //     name: winnerGlobal.name,
+            //     wins: winnerGlobal.wins,
+            // });
         } else {
-            console.log(`[${stamp()}] -> WINNER not found on ws.user`, {
-                gameId,
-                indexPlayer,
-            });
+            // console.log(`[${stamp()}] -> WINNER not found on ws.user`, {
+            //     gameId,
+            //     indexPlayer,
+            // });
         }
 
         const winnersTable = getWinnersTable();
@@ -180,10 +180,10 @@ export const handleAttack = (ws, wss, msg) => {
 
         sendJsonPlayers(room, finishRes);
 
-        console.log(`[${stamp()}] -> FINISH game`, {
-            gameId,
-            winPlayer: indexPlayer,
-        });
+        // console.log(`[${stamp()}] -> FINISH game`, {
+        //     gameId,
+        //     winPlayer: indexPlayer,
+        // });
 
         const updateWinnersRes = {
             type: "update_winners",
@@ -194,7 +194,7 @@ export const handleAttack = (ws, wss, msg) => {
         broadcastAll(wss, updateWinnersRes);
         removeRoom(gameId);
 
-        console.log(`[${stamp()}] -> update_winners`, winnersTable);
+        // console.log(`[${stamp()}] -> update_winners`, winnersTable);
 
         return;
     }
@@ -211,13 +211,13 @@ export const handleAttack = (ws, wss, msg) => {
 
     sendJsonPlayers(room, turnRes);
 
-    console.log(`[${stamp()}] -> ATTACK result`, {
-        status: killed ? "killed" : "shot",
-        nextPlayer: room.currentPlayerId,
-    });
+    // console.log(`[${stamp()}] -> ATTACK result`, {
+    //     status: killed ? "killed" : "shot",
+    //     nextPlayer: room.currentPlayerId,
+    // });
 };
 
-export const handlerRandomAttack = (ws, msg) => {
+export const handlerRandomAttack = (ws, wss, msg) => {
     const { gameId, indexPlayer } = JSON.parse(msg.data.toString()) || {};
 
     if (!gameId || !indexPlayer) {
@@ -242,15 +242,15 @@ export const handlerRandomAttack = (ws, msg) => {
     const x = Math.floor(Math.random() * BOARD_SIZE);
     const y = Math.floor(Math.random() * BOARD_SIZE);
 
-    console.log(`[${stamp()}] -> RANDOM ATTACK request`, {
-        gameId,
-        indexPlayer,
-        x,
-        y,
-    });
+    // console.log(`[${stamp()}] -> RANDOM ATTACK request`, {
+    //     gameId,
+    //     indexPlayer,
+    //     x,
+    //     y,
+    // });
 
     const attackMsg = {
-        type: "attack",
+        type: "randomAttack",
         data: JSON.stringify({
             gameId,
             x,
@@ -260,5 +260,5 @@ export const handlerRandomAttack = (ws, msg) => {
         id: 0,
     };
 
-    return handleAttack(ws, attackMsg);
+    return handleAttack(ws, wss, attackMsg);
 };

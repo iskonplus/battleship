@@ -11,11 +11,24 @@ export const createUser = (user) => {
 
 export const stamp = () => new Date().toISOString();
 
+// export const sendJson = (ws, payload) => {
+//     if (ws.readyState === ws.OPEN) {
+//         ws.send(JSON.stringify(payload));
+//     }
+// };
 export const sendJson = (ws, payload) => {
-    if (ws.readyState === ws.OPEN) {
-        ws.send(JSON.stringify(payload));
-    }
+  try {
+    // payload ожидается вида { type, data, id }
+    const { type, id } = payload || {};
+    // data может быть строкой; для лога покажем коротко
+    console.log(`[${stamp()}] -> ${type ?? 'UNKNOWN'} (id:${id ?? 0})`, payload);
+
+    ws.send(JSON.stringify(payload));
+  } catch (e) {
+    console.log(`[${stamp()}] -> sendJson error`, e);
+  }
 };
+
 export const broadcastAll = (wss, payload) => {
     wss.clients.forEach((client) => {
         sendJson(client, payload);

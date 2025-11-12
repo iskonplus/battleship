@@ -21,7 +21,7 @@ export const handleCreateRoom = (ws, wss) => {
     }
 
     const room = createRoom(user, ws);
-    console.log(`[${stamp()}] -> Created room ${room.roomId} by ${user.name}`);
+    // console.log(`[${stamp()}] -> Created room ${room.roomId} by ${user.name}`);
 
     const okRes = {
         type: "update_room",
@@ -29,7 +29,7 @@ export const handleCreateRoom = (ws, wss) => {
         id: 0,
     };
 
-    console.log(`[${stamp()}] ->`, okRes);
+    // console.log(`[${stamp()}] ->`, okRes);
 
     broadcastAll(wss, okRes);
 

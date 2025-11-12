@@ -59,7 +59,7 @@ wss.on('connection', (ws) => {
             case "attack":
                 return attack(ws,wss, msg);
             case "randomAttack":
-                return randomAttack(ws, msg);
+                return randomAttack(ws, wss, msg);
             case "single_play":
                 return  singlePlay(ws);
             default:

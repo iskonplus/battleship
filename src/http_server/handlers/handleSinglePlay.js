@@ -11,6 +11,6 @@ export const handleSinglePlay = (ws) => {
         id: 0,
     };
 
-    console.log(`[${stamp()}] ->`, okRes);
+    // console.log(`[${stamp()}] ->`, okRes);
     sendJson(ws, okRes);
 };

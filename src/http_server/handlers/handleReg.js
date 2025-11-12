@@ -29,10 +29,10 @@ export const handleReg = (ws, wss, msg) => {
 
     broadcastAll(wss, updateWinnersRes);
 
-    console.log(
-        `[${stamp()}] -> broadcast update_winners after reg`,
-        winnersTable
-    );
+    // console.log(
+    //     `[${stamp()}] -> broadcast update_winners after reg`,
+    //     winnersTable
+    // );
 
     const okRes = {
         type: "reg",
@@ -42,6 +42,6 @@ export const handleReg = (ws, wss, msg) => {
 
     ws.user = activeUser;
 
-    console.log(`[${stamp()}] ->`, okRes);
+    // console.log(`[${stamp()}] ->`, okRes);
     sendJson(ws, okRes);
 };
