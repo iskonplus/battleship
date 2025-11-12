@@ -1,5 +1,5 @@
 import {
-    stamp, sendJson, errRes, getRandomUUID, addUserToRoom, getPublicRooms, getPublicRoom
+    stamp, sendJson, errRes, getRandomUUID, addUserToRoom, getPublicRooms, getPublicRoom, broadcastAll
 } from "../utils.js";
 import { rooms } from "../db.js";
 
@@ -62,7 +62,5 @@ export const handleAddUserToRoom = (wss, ws, msg) => {
         id: 0,
     };
 
-    wss?.clients?.forEach((client) => {
-        sendJson(client, actualRoomsResponse);
-    });
+    broadcastAll(wss, actualRoomsResponse)
 };

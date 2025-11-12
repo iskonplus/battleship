@@ -1,4 +1,4 @@
-import { stamp, sendJson, errRes, createRoom, getPublicRooms } from "../utils.js";
+import { stamp, sendJson, errRes, createRoom, getPublicRooms, broadcastAll } from "../utils.js";
 import { rooms } from "../db.js";
 export const handleCreateRoom = (ws, wss) => {
     const user = ws.user;
@@ -31,5 +31,7 @@ export const handleCreateRoom = (ws, wss) => {
 
     console.log(`[${stamp()}] ->`, okRes);
 
-    wss.clients?.forEach((client) => sendJson(client, okRes));
+    broadcastAll(wss, okRes);
+
+    // wss.clients?.forEach((client) => sendJson(client, okRes));
 };

@@ -7,7 +7,7 @@ import {
     areAllShipsKilled,
     sendJsonPlayers,
 } from "../battlHelpers.js";
-import { stamp, sendJson, errRes, getRoom } from "../utils.js";
+import { stamp, sendJson, errRes, getRoom, broadcastAll} from "../utils.js";
 import { removeRoom } from '../helpers/roomHelper.js';
 import { getWinnersTable } from "../helpers/winnersHelper.js";
 
@@ -191,10 +191,7 @@ export const handleAttack = (ws, wss, msg) => {
             id: 0,
         };
 
-        wss.clients.forEach((client) => {
-            sendJson(client, updateWinnersRes);
-        });
-
+        broadcastAll(wss, updateWinnersRes);
         removeRoom(gameId);
 
         console.log(`[${stamp()}] -> update_winners`, winnersTable);

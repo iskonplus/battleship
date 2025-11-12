@@ -16,6 +16,11 @@ export const sendJson = (ws, payload) => {
         ws.send(JSON.stringify(payload));
     }
 };
+export const broadcastAll = (wss, payload) => {
+    wss.clients.forEach((client) => {
+        sendJson(client, payload);
+    })
+};
 
 export function createRoom(user, ws) {
     const room = {
