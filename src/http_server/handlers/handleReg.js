@@ -1,4 +1,9 @@
-import { stamp, sendJson, createUser, broadcastAll, getPublicRooms } from "../utils.js";
+import {
+    sendJson,
+    createUser,
+    broadcastAll,
+    getPublicRooms,
+} from "../utils.js";
 import { users } from "../db.js";
 import { getWinnersTable } from "../helpers/winnersHelper.js";
 
@@ -26,14 +31,6 @@ export const handleReg = (ws, wss, msg) => {
         id: 0,
     };
 
-
-    broadcastAll(wss, updateWinnersRes);
-
-    // console.log(
-    //     `[${stamp()}] -> broadcast update_winners after reg`,
-    //     winnersTable
-    // );
-
     const okRes = {
         type: "reg",
         data: JSON.stringify(responseData),
@@ -49,8 +46,7 @@ export const handleReg = (ws, wss, msg) => {
         id: 0,
     };
 
+    broadcastAll(wss, updateWinnersRes);
     sendJson(ws, updateRoomRes);
-
-    // console.log(`[${stamp()}] ->`, okRes);
     sendJson(ws, okRes);
 };

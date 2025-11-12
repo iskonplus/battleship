@@ -23,7 +23,7 @@ export const handleAddUserToRoom = (wss, ws, msg) => {
 
     if (userInRoom) {
         errRes.data.errorText = "User already in room";
-        // console.log(`[${stamp()}] ->  User already in room`, getPublicRoom(room));
+        console.log(`[${stamp()}] ->  User already in room`, getPublicRoom(room));
         return sendJson(ws, errRes);
     }
 
@@ -35,7 +35,6 @@ export const handleAddUserToRoom = (wss, ws, msg) => {
         id: 0,
     };
 
-    // console.log(`[${stamp()}] ->  User added to room`, responseUpdateRoom);
     sendJson(ws, responseUpdateRoom);
 
     room.idGame = getRandomUUID();
@@ -52,7 +51,6 @@ export const handleAddUserToRoom = (wss, ws, msg) => {
             idGame: room.idGame,
             idPlayer: player.idPlayer,
         });
-        // console.log(`[${stamp()}] -> ${player.name} in game`, okRes);
         sendJson(player.ws, okRes);
     }
 

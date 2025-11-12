@@ -20,8 +20,7 @@ export const handleCreateRoom = (ws, wss) => {
         return sendJson(ws, errRes);
     }
 
-    const room = createRoom(user, ws);
-    // console.log(`[${stamp()}] -> Created room ${room.roomId} by ${user.name}`);
+    createRoom(user, ws);
 
     const okRes = {
         type: "update_room",
@@ -29,9 +28,5 @@ export const handleCreateRoom = (ws, wss) => {
         id: 0,
     };
 
-    // console.log(`[${stamp()}] ->`, okRes);
-
     broadcastAll(wss, okRes);
-
-    // wss.clients?.forEach((client) => sendJson(client, okRes));
 };

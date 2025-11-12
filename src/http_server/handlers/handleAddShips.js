@@ -28,7 +28,7 @@ export const handleAddShips = (ws, msg) => {
     }
 
     if (player.ready) {
-        // console.log(`[${stamp()}] -> ships already set for ${player.name}`);
+        console.log(`[${stamp()}] -> ships already set for ${player.name}`);
         return;
     }
 
@@ -36,10 +36,6 @@ export const handleAddShips = (ws, msg) => {
 
     player.ships = ships;
     player.ready = true;
-
-    // console.log(
-    //     `[${stamp()}] -> ${player.name} submitted ships for game ${gameId}`
-    // );
 
     const bothReady = room.roomUsers.every((user) => user.ready);
 
@@ -56,7 +52,6 @@ export const handleAddShips = (ws, msg) => {
             id: 0,
         };
 
-        // console.log(`[${stamp()}] -> start_game to ${user.name}`, startRes);
         sendJson(user.ws, startRes);
     }
 
@@ -67,5 +62,4 @@ export const handleAddShips = (ws, msg) => {
     };
 
     room.roomUsers.forEach((user) => sendJson(user.ws, turnRes));
-    // console.log(`[${stamp()}] -> turn broadcast`, turnRes);
 };

@@ -6,9 +6,9 @@ export const removeRoom = (gameId) => {
 
     if (index !== -1) {
         const [removed] = rooms.splice(index, 1);
-        console.log(
-            `[${stamp()}] -> ROOM removed after finish`,
-            { gameId, roomId: removed.roomId }
-        );
+        console.log(`[${stamp()}] -> ROOM removed after finish`, {
+            gameId,
+            roomId: removed.roomId,
+        });
     }
 };

@@ -1,4 +1,4 @@
-import { stamp, sendJson, getRandomUUID } from "../utils.js";
+import { sendJson, getRandomUUID } from "../utils.js";
 
 export const handleSinglePlay = (ws) => {
     const idGame = getRandomUUID();
@@ -11,6 +11,5 @@ export const handleSinglePlay = (ws) => {
         id: 0,
     };
 
-    // console.log(`[${stamp()}] ->`, okRes);
     sendJson(ws, okRes);
 };
