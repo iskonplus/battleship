@@ -57,7 +57,7 @@ wss.on('connection', (ws) => {
             case "add_ships":
                 return addShips(ws, msg);
             case "attack":
-                return attack(ws, msg);
+                return attack(ws,wss, msg);
             case "randomAttack":
                 return randomAttack(ws, msg);
             case "single_play":

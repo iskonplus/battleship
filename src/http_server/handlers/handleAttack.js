@@ -4,7 +4,7 @@ import { stamp, sendJson, errRes, getRoom } from "../utils.js";
 import { users } from "../db.js";
 import { getWinnersTable } from "../winnersHelper.js";
 
-export const handleAttack = (ws, msg) => {
+export const handleAttack = (ws, wss, msg) => {
     const { gameId, x, y, indexPlayer } = JSON.parse(msg.data.toString()) || {};
 
     if (!gameId || typeof x !== "number" || typeof y !== "number" || !indexPlayer) {
@@ -182,7 +182,11 @@ export const handleAttack = (ws, msg) => {
             id: 0,
         };
 
-        sendJsonPlayers(room, updateWinnersRes);
+            wss.clients.forEach((client) => {
+        sendJson(client, updateWinnersRes);
+    });
+
+        // sendJsonPlayers(room, updateWinnersRes);
 
         console.log(
             `[${stamp()}] -> update_winners`,
