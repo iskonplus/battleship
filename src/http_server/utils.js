@@ -12,12 +12,16 @@ export const createUser = (user) => {
 export const stamp = () => new Date().toISOString();
 
 export const sendJson = (ws, payload) => {
+
     try {
         const { type, id } = payload || {};
         console.log(
             `[${stamp()}] -> ${type ?? "UNKNOWN"} (id:${id ?? 0})`,
             payload
         );
+        if (!ws || typeof ws.send !== "function") {
+            return;
+        }
         ws.send(JSON.stringify(payload));
     } catch (e) {
         console.log(`[${stamp()}] -> sendJson error`, e);
@@ -31,6 +35,7 @@ export const broadcastAll = (wss, payload) => {
 };
 
 export const createRoom = (user, ws) => {
+    //  if (!user.ws) return;
     const room = {
         roomId: crypto.randomUUID(),
         roomUsers: [{ name: user.name, index: user.index, ws }],

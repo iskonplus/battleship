@@ -10,6 +10,7 @@ import {
 import { stamp, sendJson, errRes, getRoom, broadcastAll } from "../utils.js";
 import { removeRoom } from "../helpers/roomHelper.js";
 import { getWinnersTable } from "../helpers/winnersHelper.js";
+import { userBot } from "../db.js"; 
 
 export const handleAttack = (ws, wss, msg) => {
   const { gameId, x, y, indexPlayer } = JSON.parse(msg.data.toString()) || {};
@@ -78,30 +79,54 @@ export const handleAttack = (ws, wss, msg) => {
   const hitInfo = findHitShip(opponent.ships, x, y);
 
   if (!hitInfo) {
-    const attackRes = {
-      type: "attack",
+  const attackRes = {
+    type: "attack",
+    data: JSON.stringify({
+      position: { x, y },
+      currentPlayer: indexPlayer,
+      status: "miss",
+    }),
+    id: 0,
+  };
+
+  sendJsonPlayers(room, attackRes);
+  room.currentPlayerId = opponent.idPlayer;
+
+  const turnRes = {
+    type: "turn",
+    data: JSON.stringify({
+      currentPlayer: room.currentPlayerId,
+    }),
+    id: 0,
+  };
+
+  sendJsonPlayers(room, turnRes);
+
+  // === ВОТ ЗДЕСЬ БОТ "ХОДИТ" ===
+  if (room.isSinglePlay && opponent.isBot) {
+    const randomMsg = {
+      type: "randomAttack",
       data: JSON.stringify({
-        position: { x, y },
-        currentPlayer: indexPlayer,
-        status: "miss",
+        gameId,
+        indexPlayer: opponent.idPlayer,
       }),
       id: 0,
     };
 
-    sendJsonPlayers(room, attackRes);
-    room.currentPlayerId = opponent.idPlayer;
-
-    const turnRes = {
-      type: "turn",
-      data: JSON.stringify({
-        currentPlayer: room.currentPlayerId,
-      }),
-      id: 0,
+    const botWs = {
+      user: userBot,
+      send: () => {},
     };
 
-    sendJsonPlayers(room, turnRes);
-    return;
+    setTimeout(() => {
+      handlerRandomAttack(botWs, wss, randomMsg);
+    }, 1000);
+
+    
   }
+
+  return;
+}
 
   const { ship, cells: shipCells } = hitInfo;
   opponent.hits.add(shotKey);
@@ -190,6 +215,27 @@ export const handleAttack = (ws, wss, msg) => {
   };
 
   sendJsonPlayers(room, turnRes);
+
+  if (room.isSinglePlay && shooter.isBot && room.currentPlayerId === shooter.idPlayer) {
+    const randomMsg = {
+      type: "randomAttack",
+      data: JSON.stringify({
+        gameId,
+        indexPlayer: shooter.idPlayer,
+      }),
+      id: 0,
+    };
+
+    const botWs = {
+      user: userBot,
+      send: () => { },
+    };
+
+    setTimeout(() => {
+      handlerRandomAttack(botWs, wss, randomMsg);
+    }, 1000);
+
+  }
 };
 
 export const handlerRandomAttack = (ws, wss, msg) => {
@@ -218,7 +264,7 @@ export const handlerRandomAttack = (ws, wss, msg) => {
   const y = getRandomStep();
 
   const attackMsg = {
-    type: "randomAttack",
+    type: "attack",
     data: JSON.stringify({
       gameId,
       x,

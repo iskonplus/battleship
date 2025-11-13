@@ -7,13 +7,14 @@ export const users = [
   }
 ];
 
-export const BOT_USER = {
+export const userBot = {
   name: 'Bot',
   password: '',
   index: 'bot-user',
   wins: 0,
 };
 
-users.push(BOT_USER);
+
+users.push(userBot);
 
 export const rooms = [];
